@@ -15,6 +15,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -96,6 +97,7 @@ class SchemaIntegrityTest {
                 exception.getSQLState()
         );
 
+        assert exception.getServerErrorMessage() != null;
         assertEquals(
                 "fk_task_definition_capability_organization",
                 exception.getServerErrorMessage().getConstraint()
@@ -128,7 +130,7 @@ class SchemaIntegrityTest {
                 capability
         );
 
-        int runA = insertWorkflowRun(workflowA);
+        UUID runA = insertWorkflowRun(workflowA);
 
         PSQLException exception = assertThrows(
                 PSQLException.class,
@@ -144,6 +146,7 @@ class SchemaIntegrityTest {
                 exception.getSQLState()
         );
 
+        assert exception.getServerErrorMessage() != null;
         assertEquals(
                 "fk_task_execution_definition_workflow",
                 exception.getServerErrorMessage().getConstraint()
@@ -173,7 +176,7 @@ class SchemaIntegrityTest {
                 capability
         );
 
-        int run = insertWorkflowRun(workflow);
+        UUID run = insertWorkflowRun(workflow);
 
         assertDoesNotThrow(
                 () -> insertTaskExecution(
@@ -284,55 +287,63 @@ class SchemaIntegrityTest {
         }
     }
 
-    private int insertWorkflowRun(int workflowId)
+    private UUID insertWorkflowRun(int workflowId)
             throws SQLException {
 
+        UUID runId = UUID.randomUUID();
+
         String sql = """
-                INSERT INTO workflow_run (
-                    workflow_id,
-                    input_message
-                )
-                VALUES (?, CAST(? AS JSONB))
-                RETURNING id
-                """;
+            INSERT INTO workflow_run (
+                id,
+                workflow_id,
+                input_message
+            )
+            VALUES (?, ?, CAST(? AS JSONB))
+            """;
 
         try (PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
-            statement.setInt(1, workflowId);
+            statement.setObject(1, runId);
+            statement.setInt(2, workflowId);
             statement.setString(
-                    2,
+                    3,
                     """
                     {"message":"integration-test"}
                     """
             );
 
-            return executeAndReturnId(statement);
+            statement.executeUpdate();
+            return runId;
         }
     }
 
     private void insertTaskExecution(
             int workflowId,
-            int workflowRunId,
+            UUID workflowRunId,
             int workflowTaskDefinitionId
     ) throws SQLException {
 
+        UUID taskExecutionId = UUID.randomUUID();
+
         String sql = """
-                INSERT INTO task_execution (
-                    workflow_id,
-                    workflow_run_id,
-                    workflow_task_definition_id
-                )
-                VALUES (?, ?, ?)
-                """;
+            INSERT INTO task_execution (
+                id,
+                workflow_id,
+                workflow_run_id,
+                workflow_task_definition_id
+            )
+            VALUES (?, ?, ?, ?)
+            """;
 
         try (PreparedStatement statement =
                      connection.prepareStatement(sql)) {
 
-            statement.setInt(1, workflowId);
-            statement.setInt(2, workflowRunId);
+            statement.setObject(1, taskExecutionId);
+            statement.setInt(2, workflowId);
+            statement.setObject(3, workflowRunId);
             statement.setInt(
-                    3,
+                    4,
                     workflowTaskDefinitionId
             );
 

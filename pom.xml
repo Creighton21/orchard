@@ -80,6 +80,7 @@
                     <url>jdbc:postgresql://localhost:5432/orchard</url>
                     <user>orchard</user>
                     <password>orchard</password>
+                    <cleanDisabled>false</cleanDisabled>
                 </configuration>
                 <dependencies>
                     <dependency>

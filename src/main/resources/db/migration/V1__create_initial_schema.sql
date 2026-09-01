@@ -55,42 +55,37 @@ CREATE TABLE workflow_task_definition (
 );
 
 CREATE TABLE workflow_run (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY,
     workflow_id INT NOT NULL REFERENCES workflow(id),
-    status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+    status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
     input_message JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT uq_workflow_run_id_workflow
-        UNIQUE (id, workflow_id),
+    UNIQUE (id, workflow_id),
 
-    CONSTRAINT ck_workflow_run_status
-        CHECK (status IN ('PENDING', 'SUCCEEDED'))
+    CONSTRAINT chk_workflow_run_status
+      CHECK (status IN ('PENDING', 'SUCCEEDED'))
 );
 
 CREATE TABLE task_execution (
-    id SERIAL PRIMARY KEY,
-    workflow_id INT NOT NULL,
-    workflow_run_id INT NOT NULL,
+    id UUID PRIMARY KEY,
+    workflow_id INT NOT NULL REFERENCES workflow(id),
+    workflow_run_id UUID NOT NULL,
     workflow_task_definition_id INT NOT NULL,
-    status VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+    status VARCHAR(255) NOT NULL DEFAULT 'PENDING',
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_task_execution_run_workflow
         FOREIGN KEY (workflow_run_id, workflow_id)
-            REFERENCES workflow_run (id, workflow_id),
+            REFERENCES workflow_run(id, workflow_id),
 
     CONSTRAINT fk_task_execution_definition_workflow
         FOREIGN KEY (workflow_task_definition_id, workflow_id)
-            REFERENCES workflow_task_definition (id, workflow_id),
+            REFERENCES workflow_task_definition(id, workflow_id),
 
-    CONSTRAINT uq_task_execution_per_run_definition
-        UNIQUE (workflow_run_id, workflow_task_definition_id),
-
-    CONSTRAINT ck_task_execution_status
+    CONSTRAINT chk_task_execution_status
         CHECK (status IN ('PENDING', 'SUCCEEDED'))
 );
-
 
 
 
