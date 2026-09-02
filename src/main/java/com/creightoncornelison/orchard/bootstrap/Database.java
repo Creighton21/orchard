@@ -1,4 +1,4 @@
-package com.creightoncornelison.persistence;
+package com.creightoncornelison.orchard.bootstrap;
 
 import org.flywaydb.core.Flyway;
 

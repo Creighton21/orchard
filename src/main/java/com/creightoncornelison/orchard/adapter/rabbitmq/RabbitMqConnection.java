@@ -1,4 +1,4 @@
-package com.creightoncornelison.messaging;
+package com.creightoncornelison.orchard.adapter.rabbitmq;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -51,9 +51,6 @@ public class RabbitMqConnection {
 
         channel.queueDeclare(QUEUE_NAME, true, false, false, null);
         System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
-
-        // Sleep for 10 seconds
-        Thread.sleep(10000);
 
         // Callback mechanism to handle incoming messages
         DeliverCallback deliverCallback = (consumerTag, delivery) -> {

@@ -1,4 +1,4 @@
-package com.creightoncornelison.persistence;
+package com.creightoncornelison.orchard.persistence;
 
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
